@@ -1,13 +1,16 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.24",
+	"EngineAssociation": "{000410EE-08D8-06FA-7D06-D3A85EC442EB}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
 			"Name": "AbsolutelyHorrid",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		}
 	]
 }
