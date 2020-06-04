@@ -3,19 +3,19 @@
 
 #include "../AbsolutelyHorrid.h"
 #include "GameFramework/PlayerController.h"
-#include "HorridPlayerController.generated.h"
+#include "HPlayerController.generated.h"
 
-class AHorridPawn;
+class AFoxCharacter;
 
 /** Default player controller*/
 UCLASS(MinimalAPI)
-class AHorridPlayerController final : public APlayerController
+class AHPlayerController final : public APlayerController
 {
 	GENERATED_BODY()
 	
 public:
 
-    AHorridPlayerController();
+    AHPlayerController();
 
     void SetupInputComponent() override;
 
@@ -26,6 +26,6 @@ private:
     void BeginPlay() override;
 
     UPROPERTY()
-    AHorridPawn* HorridPawn;
+    AFoxCharacter* FoxCharacterPtr;
 
 };

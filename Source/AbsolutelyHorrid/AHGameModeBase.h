@@ -3,19 +3,19 @@
 
 #include "AbsolutelyHorrid.h"
 #include "GameFramework/GameModeBase.h"
-#include "AbsolutelyHorridGameModeBase.generated.h"
+#include "AHGameModeBase.generated.h"
 
 /** Gamemode class */
 UCLASS()
-class ABSOLUTELYHORRID_API AAbsolutelyHorridGameModeBase : public AGameModeBase
+class ABSOLUTELYHORRID_API AHGamemodeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
 
-    AAbsolutelyHorridGameModeBase();
+    AHGamemodeBase();
 
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
 protected:
 
