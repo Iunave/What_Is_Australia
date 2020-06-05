@@ -3,16 +3,16 @@
 #include "AHGameModeBase.h"
 #include "Player/HPlayerController.h"
 #include "Player/HorridHUD.h"
-#include "Player/FoxCharacter.h"
+#include "Player/FoxPawn.h"
 
 AHGamemodeBase::AHGamemodeBase()
 {
     PrimaryActorTick.bCanEverTick = true;
     bPauseable = true;
 
+    DefaultPawnClass = AFoxPawn::StaticClass();
     PlayerControllerClass = AHPlayerController::StaticClass();
     HUDClass = AHorridHUD::StaticClass();
-    DefaultPawnClass = AFoxCharacter::StaticClass();
 }
 
 void AHGamemodeBase::Tick(float DeltaTime)

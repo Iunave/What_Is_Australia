@@ -5,11 +5,11 @@
 #include "GameFramework/PlayerController.h"
 #include "HPlayerController.generated.h"
 
-class AFoxCharacter;
+class AFoxPawn;
 
 /** Default player controller*/
-UCLASS(MinimalAPI)
-class AHPlayerController final : public APlayerController
+UCLASS()
+class ABSOLUTELYHORRID_API AHPlayerController final : public APlayerController
 {
 	GENERATED_BODY()
 	
@@ -24,8 +24,5 @@ public:
 private:
 
     void BeginPlay() override;
-
-    UPROPERTY()
-    AFoxCharacter* FoxCharacterPtr;
 
 };

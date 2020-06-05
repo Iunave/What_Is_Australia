@@ -6,8 +6,8 @@
 #include "AHGameModeBase.generated.h"
 
 /** Gamemode class */
-UCLASS()
-class ABSOLUTELYHORRID_API AHGamemodeBase : public AGameModeBase
+UCLASS(MinimalAPI)
+class AHGamemodeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 
