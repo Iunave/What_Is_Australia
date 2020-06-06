@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FoxCharacter.h"
-#include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -10,18 +9,10 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundCue.h"
 #include "Animation/AnimationAsset.h"
+#include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 #define TURN_SETTING
-
-
-template<typename... DataType>
-DataHolder<DataType...>::DataHolder(DataType*... Type)
-{
-    for(auto Index = 0; Index < sizeof...(DataType); Index++)
-    {
-        this->DataArray.EmplaceAt(Index, Type...);
-    }
-}
 
 
 AFoxCharacter::AFoxCharacter()
@@ -29,6 +20,8 @@ AFoxCharacter::AFoxCharacter()
     , JumpingForce(1.f)
     , bCanDive(false)
     , bIsDiving(false)
+    , bWaitToPlayWalkingSound(false)
+    , WalkSoundDelay(0.2f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -45,26 +38,27 @@ AFoxCharacter::AFoxCharacter()
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
-    Super::LandedDelegate.AddDynamic(this, &AFoxCharacter::PlayLandingAnimation);
+    FIND_OBJECT(StepsSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_Snow);
+    FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
+    FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
 
-    FIND_OBJECT(RunningSound, USoundCue, /Game/Run.cue);
-    FIND_OBJECT(RunningAnimation, UAnimationAsset, /Game/Run.asset);
+    //FoxWalkingSnow = StepsSnowObj.Object;
+    Walking.FoxWalkingGrass = StepsGrassObj.Object;
+    FoxDazed = DazedObj.Object;
 
-
-    FoxSounds = MakeShareable(new DataHolder<USoundCue>(RunningSoundObj.Object));
-    FoxAnimations = MakeShareable(new DataHolder<UAnimationAsset>(RunningAnimationObj.Object));
+    //FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsSnowObj.Object, StepsGrassObj.Object, DazedObj.Object));
 
 }
 
 AFoxCharacter::~AFoxCharacter()
 {
-    FoxSounds.Reset();
-    FoxAnimations.Reset();
 }
 
 void AFoxCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+    Super::LandedDelegate.AddDynamic(this, &AFoxCharacter::PlayLandingAnimation);
 
 }
 
@@ -87,8 +81,14 @@ void AFoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void AFoxCharacter::MoveForward(float Value)
 {
-    if(Controller && Value != 0.0f)
+    if(Controller && Value != 0.0f && !GetCharacterMovement()->IsFalling())
     {
+        if(!bWaitToPlayWalkingSound)
+        {
+            GetWorld()->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
+            bWaitToPlayWalkingSound = true;
+        }
+
         if(Value < 0.f)
         {
             // TODO add braking animation
@@ -101,8 +101,13 @@ void AFoxCharacter::MoveForward(float Value)
 
 void AFoxCharacter::MoveRight(float Value)
 {
-    if(Controller && Value != 0.0f)
+    if(Controller && Value != 0.0f && !GetCharacterMovement()->IsFalling())
     {
+        if(!bWaitToPlayWalkingSound && FMath::IsNearlyZero(GetVelocity().X, 5.f))
+        {
+            GetWorld()->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
+            bWaitToPlayWalkingSound = true;
+        }
         // TODO add turning animation
 #ifdef ROTATE_SETTING
         SetActorRotation(FRotator(GetActorRotation().Pitch, (GetActorRotation().Yaw + (Value * TurnSensitivity)), GetActorRotation().Roll));
@@ -128,7 +133,16 @@ void AFoxCharacter::Dive()
 
 void AFoxCharacter::PlayLandingAnimation(const FHitResult& Hit)
 {
+    // TODO add landing animation
+}
 
+void AFoxCharacter::PlaySound()
+{
+    if(!GetCharacterMovement()->IsFalling() && !GetVelocity().IsNearlyZero(10.f))
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), Walking.FoxWalkingGrass, GetActorLocation());
+    }
+    bWaitToPlayWalkingSound = false;
 }
 
 

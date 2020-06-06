@@ -7,11 +7,11 @@ public class AbsolutelyHorrid : ModuleRules
 	public AbsolutelyHorrid(ReadOnlyTargetRules Target) : base(Target)
 	{
 	    PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        /*
+/*
         PCHUsage = PCHUsageMode.NoSharedPCHs;
         CppStandard = CppStandardVersion.Cpp17;
         PrivatePCHHeaderFile = "AbsolutelyHorrid.h";
-        */
+*/
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

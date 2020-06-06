@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 
+#include <utility>
+#include <tuple>
 #include "../AbsolutelyHorrid.h"
 #include "GameFramework/Character.h"
 #include "FoxCharacter.generated.h"
@@ -11,17 +13,8 @@ class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UAnimationAsset;
 class USoundCue;
-
-
-template<typename... DataType>
-struct DataHolder
-{
-    explicit inline DataHolder(DataType*... Type);
-
-    ~DataHolder() = default;
-
-    TArray<DataType*...> DataArray;
-};
+struct FTimerHandle;
+class FTimerDynamicDelegate;
 
 
 UCLASS(Blueprintable)
@@ -53,6 +46,8 @@ protected:
 
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	void PlaySound();
+
 	UPROPERTY(EditAnywhere, Category=Components)
 	USkeletalMeshComponent* SkeletalMesh;
 
@@ -68,9 +63,27 @@ protected:
     bool bCanDive;
     bool bIsDiving;
 
+    bool bWaitToPlayWalkingSound;
 
-    TSharedPtr<DataHolder<USoundCue>> FoxSounds;
+    float WalkSoundDelay;
 
-    TSharedPtr<DataHolder<UAnimationAsset>> FoxAnimations;
+    union
+    {
+        UPROPERTY()
+        USoundCue* FoxWalkingSnow;
 
+        UPROPERTY()
+        USoundCue* FoxWalkingGrass;
+
+    } Walking;
+
+
+    UPROPERTY()
+    USoundCue* FoxDazed;
+
+
+    FTimerHandle WalkingSoundTimerHandle;
+
+    FTimerDynamicDelegate WalkingSoundDelegate;
+    
 };
