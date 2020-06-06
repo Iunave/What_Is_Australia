@@ -8,7 +8,6 @@
 #include "Components/InputComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundCue.h"
-#include "Animation/AnimationAsset.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -42,16 +41,16 @@ AFoxCharacter::AFoxCharacter()
     FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
     FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
 
-    //FoxWalkingSnow = StepsSnowObj.Object;
-    Walking.FoxWalkingGrass = StepsGrassObj.Object;
-    FoxDazed = DazedObj.Object;
+    FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsGrassObj.Object, StepsSnowObj.Object, DazedObj.Object));
 
-    //FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsSnowObj.Object, StepsGrassObj.Object, DazedObj.Object));
+    FoxAnimations = MakeShareable(new DataHolder<UAnimBlueprint>());
 
 }
 
 AFoxCharacter::~AFoxCharacter()
 {
+    FoxSounds.Reset();
+    FoxAnimations.Reset();
 }
 
 void AFoxCharacter::BeginPlay()
@@ -59,6 +58,9 @@ void AFoxCharacter::BeginPlay()
 	Super::BeginPlay();
 
     Super::LandedDelegate.AddDynamic(this, &AFoxCharacter::PlayLandingAnimation);
+
+    SkeletalMesh->OnComponentBeginOverlap.AddDynamic(this, &AFoxCharacter::OnBeginOverlap);
+    SkeletalMesh->OnComponentEndOverlap.AddDynamic(this, &AFoxCharacter::OnEndOverlap);
 
 }
 
@@ -122,8 +124,11 @@ void AFoxCharacter::MoveRight(float Value)
 void AFoxCharacter::Jump()
 {
     Super::Jump();
-    // TODO add jumping animation
 
+    if(CanJump())
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds->DataArray[0], GetActorLocation());
+    }
 }
 
 void AFoxCharacter::Dive()
@@ -138,13 +143,26 @@ void AFoxCharacter::PlayLandingAnimation(const FHitResult& Hit)
 
 void AFoxCharacter::PlaySound()
 {
-    if(!GetCharacterMovement()->IsFalling() && !GetVelocity().IsNearlyZero(10.f))
+    if(!GetCharacterMovement()->IsFalling() && !GetVelocity().IsNearlyZero(10.f) && FoxSounds.IsValid())
     {
-        UGameplayStatics::PlaySoundAtLocation(GetWorld(), Walking.FoxWalkingGrass, GetActorLocation());
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds->DataArray[0], GetActorLocation());
     }
     bWaitToPlayWalkingSound = false;
 }
 
 
+void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if(!OtherActor->IsA<AFoxCharacter>())
+    {
 
+    }
+}
 
+void AFoxCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    if(!OtherActor->IsA<AFoxCharacter>())
+    {
+
+    }
+}

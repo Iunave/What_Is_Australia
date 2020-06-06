@@ -1,8 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 
-#include <utility>
-#include <tuple>
 #include "../AbsolutelyHorrid.h"
 #include "GameFramework/Character.h"
 #include "FoxCharacter.generated.h"
@@ -12,6 +10,7 @@ class UCameraComponent;
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UAnimationAsset;
+class UAnimBlueprint;
 class USoundCue;
 struct FTimerHandle;
 class FTimerDynamicDelegate;
@@ -25,7 +24,7 @@ class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 public:
 
 	AFoxCharacter();
-	~AFoxCharacter();
+	~AFoxCharacter() override;
 
     void Tick(float DeltaTime) override;
 
@@ -48,6 +47,12 @@ protected:
 
 	void PlaySound();
 
+    UFUNCTION()
+    void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    UFUNCTION()
+    void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	UPROPERTY(EditAnywhere, Category=Components)
 	USkeletalMeshComponent* SkeletalMesh;
 
@@ -67,20 +72,10 @@ protected:
 
     float WalkSoundDelay;
 
-    union
-    {
-        UPROPERTY()
-        USoundCue* FoxWalkingSnow;
 
-        UPROPERTY()
-        USoundCue* FoxWalkingGrass;
+    TSharedPtr<DataHolder<USoundCue>> FoxSounds;
 
-    } Walking;
-
-
-    UPROPERTY()
-    USoundCue* FoxDazed;
-
+    TSharedPtr<DataHolder<UAnimBlueprint>> FoxAnimations;
 
     FTimerHandle WalkingSoundTimerHandle;
 
