@@ -5,7 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HPlayerController.generated.h"
 
-class AFoxPawn;
+class AFoxCharacter;
 
 /** Default player controller*/
 UCLASS()
