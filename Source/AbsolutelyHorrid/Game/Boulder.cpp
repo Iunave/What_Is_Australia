@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Boulder.h"
+#include "../AbsolutelyHorrid.h"
 #include "Components/StaticMeshComponent.h"
 
 ABoulder::ABoulder()
