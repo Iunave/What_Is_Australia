@@ -7,6 +7,7 @@
 template<typename DataType> struct DataHolder;
 class USpringArmComponent;
 class UCameraComponent;
+class UBoxComponent;
 class UAnimationAsset;
 class UAnimBlueprint;
 class USoundCue;
@@ -20,19 +21,19 @@ class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 
 public:
 
-	AFoxCharacter();
-	~AFoxCharacter() override;
+	AFoxCharacter(const FObjectInitializer& ObjectInitializer);
+	~AFoxCharacter() noexcept override;
 
     void Tick(float DeltaTime) override;
 
 
-    inline void MoveForward(float Value);
+    void MoveForward(float Value);
 
-    inline void MoveRight(float Value);
+    void MoveRight(float Value);
 
-    inline void Jump();
+    FORCENOINLINE void Jump() override;
 
-    inline void Dive();
+    FORCENOINLINE void Dive();
 
     UFUNCTION()
     void PlayLandingAnimation(const FHitResult& Hit);
@@ -50,6 +51,9 @@ protected:
 
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UPROPERTY(VisibleAnywhere, Category=Components)
+    UBoxComponent* BoxComponent;
 
     UPROPERTY(VisibleAnywhere, Category=Components)
     USpringArmComponent* CameraSpringArm;

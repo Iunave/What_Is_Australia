@@ -3,7 +3,6 @@
 #include "FoxCharacter.h"
 #include "../AbsolutelyHorrid.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/BoxComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -12,11 +11,12 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Components/BoxComponent.h"
 
 #define TURN_SETTING
 
 
-AFoxCharacter::AFoxCharacter()
+AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
     : TurnSensitivity(1.f)
     , JumpingForce(1.f)
     , bCanDive(false)
@@ -27,6 +27,9 @@ AFoxCharacter::AFoxCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>("BoxComponent");
+	BoxComponent->SetupAttachment(RootComponent);
 
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	CameraSpringArm->SetupAttachment(RootComponent);
@@ -46,7 +49,7 @@ AFoxCharacter::AFoxCharacter()
 
 }
 
-AFoxCharacter::~AFoxCharacter()
+AFoxCharacter::~AFoxCharacter() noexcept
 {
     FoxSounds.Reset();
     FoxAnimations.Reset();
@@ -58,8 +61,8 @@ void AFoxCharacter::BeginPlay()
 
     Super::LandedDelegate.AddDynamic(this, &AFoxCharacter::PlayLandingAnimation);
 
-    GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &AFoxCharacter::OnBeginOverlap);
-    GetMesh()->OnComponentEndOverlap.AddDynamic(this, &AFoxCharacter::OnEndOverlap);
+    BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AFoxCharacter::OnBeginOverlap);
+    BoxComponent->OnComponentEndOverlap.AddDynamic(this, &AFoxCharacter::OnEndOverlap);
 }
 
 void AFoxCharacter::Tick(float DeltaTime)
@@ -83,19 +86,29 @@ void AFoxCharacter::MoveForward(float Value)
 {
     if(Controller && Value != 0.0f && !GetCharacterMovement()->IsFalling())
     {
-        if(!bWaitToPlayWalkingSound)
+        auto SetTimerForWalkingSFX = [&](const float AtSpeed) -> void
         {
-            GetWorld()->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
-            bWaitToPlayWalkingSound = true;
-        }
+            if(!bWaitToPlayWalkingSound)
+            {
+                GetWorld()->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, (WalkSoundDelay / AtSpeed));
+                bWaitToPlayWalkingSound = true;
+            }
+        };
 
         if(Value < 0.f)
         {
-            // TODO add braking animation
+            static constexpr float Speed {0.5f};
+
+            SetTimerForWalkingSFX(Speed);
+            AddMovementInput(GetActorForwardVector(), (Value * Speed));
+            return;
         }
+        SetTimerForWalkingSFX(1.f);
+
         AddMovementInput(GetActorForwardVector(), Value);
         return;
     }
+
     LOGS(AFoxCharacter::MoveForward called unexpectedly)
 }
 
@@ -110,8 +123,16 @@ void AFoxCharacter::MoveRight(float Value)
         }
         // TODO add turning animation
 #ifdef ROTATE_SETTING
+
         SetActorRotation(FRotator(GetActorRotation().Pitch, (GetActorRotation().Yaw + (Value * TurnSensitivity)), GetActorRotation().Roll));
+
 #elif defined(TURN_SETTING)
+
+        if(GetVelocity().X < -10.f)
+        {
+            AddMovementInput(GetActorRightVector(), (Value * 0.5f));
+            return;
+        }
         AddMovementInput(GetActorRightVector(), Value);
 #endif
         return;
