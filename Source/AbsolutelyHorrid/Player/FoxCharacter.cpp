@@ -1,15 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FoxCharacter.h"
-#include "../AbsolutelyHorrid.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/BoxComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundCue.h"
+#include "Animation/AnimationAsset.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -28,6 +27,9 @@ AFoxCharacter::AFoxCharacter()
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+    SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMeshComponent");
+    SkeletalMesh->SetupAttachment(RootComponent);
+
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true;
@@ -40,16 +42,16 @@ AFoxCharacter::AFoxCharacter()
     FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
     FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
 
-    FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsGrassObj.Object, StepsSnowObj.Object, DazedObj.Object));
+    //FoxWalkingSnow = StepsSnowObj.Object;
+    Walking.FoxWalkingGrass = StepsGrassObj.Object;
+    FoxDazed = DazedObj.Object;
 
-    FoxAnimations = MakeShareable(new DataHolder<UAnimBlueprint>());
+    //FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsSnowObj.Object, StepsGrassObj.Object, DazedObj.Object));
 
 }
 
 AFoxCharacter::~AFoxCharacter()
 {
-    FoxSounds.Reset();
-    FoxAnimations.Reset();
 }
 
 void AFoxCharacter::BeginPlay()
@@ -58,8 +60,6 @@ void AFoxCharacter::BeginPlay()
 
     Super::LandedDelegate.AddDynamic(this, &AFoxCharacter::PlayLandingAnimation);
 
-    GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &AFoxCharacter::OnBeginOverlap);
-    GetMesh()->OnComponentEndOverlap.AddDynamic(this, &AFoxCharacter::OnEndOverlap);
 }
 
 void AFoxCharacter::Tick(float DeltaTime)
@@ -121,7 +121,9 @@ void AFoxCharacter::MoveRight(float Value)
 
 void AFoxCharacter::Jump()
 {
-    abort();
+    Super::Jump();
+    // TODO add jumping animation
+
 }
 
 void AFoxCharacter::Dive()
@@ -136,26 +138,13 @@ void AFoxCharacter::PlayLandingAnimation(const FHitResult& Hit)
 
 void AFoxCharacter::PlaySound()
 {
-    if(!GetCharacterMovement()->IsFalling() && !GetVelocity().IsNearlyZero(10.f) && FoxSounds.IsValid())
+    if(!GetCharacterMovement()->IsFalling() && !GetVelocity().IsNearlyZero(10.f))
     {
-        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds->DataArray[0], GetActorLocation());
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), Walking.FoxWalkingGrass, GetActorLocation());
     }
     bWaitToPlayWalkingSound = false;
 }
 
 
-void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-    if(!OtherActor->IsA<AFoxCharacter>())
-    {
 
-    }
-}
 
-void AFoxCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-    if(!OtherActor->IsA<AFoxCharacter>())
-    {
-
-    }
-}

@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 
+#include "../AbsolutelyHorrid.h"
 #include "GameFramework/Actor.h"
 #include "Boulder.generated.h"
 

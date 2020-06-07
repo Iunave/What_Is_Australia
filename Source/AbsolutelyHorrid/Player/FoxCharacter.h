@@ -1,17 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 
+#include <utility>
+#include <tuple>
+#include "../AbsolutelyHorrid.h"
 #include "GameFramework/Character.h"
 #include "FoxCharacter.generated.h"
 
-template<typename DataType> struct DataHolder;
 class USpringArmComponent;
 class UCameraComponent;
+class USkeletalMeshComponent;
+class UStaticMeshComponent;
 class UAnimationAsset;
-class UAnimBlueprint;
 class USoundCue;
 struct FTimerHandle;
 class FTimerDynamicDelegate;
+
 
 UCLASS(Blueprintable)
 class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
@@ -21,7 +25,7 @@ class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 public:
 
 	AFoxCharacter();
-	~AFoxCharacter() override;
+	~AFoxCharacter();
 
     void Tick(float DeltaTime) override;
 
@@ -30,11 +34,10 @@ public:
 
     inline void MoveRight(float Value);
 
-    inline void Jump();
+    inline void Jump() override;
 
     inline void Dive();
 
-    UFUNCTION()
     void PlayLandingAnimation(const FHitResult& Hit);
 
 protected:
@@ -45,11 +48,8 @@ protected:
 
 	void PlaySound();
 
-    UFUNCTION()
-    void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-    UFUNCTION()
-    void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UPROPERTY(EditAnywhere, Category=Components)
+	USkeletalMeshComponent* SkeletalMesh;
 
     UPROPERTY(VisibleAnywhere, Category=Components)
     USpringArmComponent* CameraSpringArm;
@@ -67,10 +67,20 @@ protected:
 
     float WalkSoundDelay;
 
+    union
+    {
+        UPROPERTY()
+        USoundCue* FoxWalkingSnow;
 
-    TSharedPtr<DataHolder<USoundCue>> FoxSounds;
+        UPROPERTY()
+        USoundCue* FoxWalkingGrass;
 
-    TSharedPtr<DataHolder<UAnimBlueprint>> FoxAnimations;
+    } Walking;
+
+
+    UPROPERTY()
+    USoundCue* FoxDazed;
+
 
     FTimerHandle WalkingSoundTimerHandle;
 
