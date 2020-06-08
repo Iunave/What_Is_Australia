@@ -5,6 +5,7 @@
 #include "../Game/Boulder.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
@@ -25,6 +26,7 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
     : JumpingForce(1.f)
     , bCanDive(false)
     , bIsDiving(false)
+    , bCanPlayJumpSound(true)
     , bWaitToPlayWalkingSound(false)
     , WalkSoundDelay(0.2f)
 {
@@ -49,11 +51,26 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
 
     FIND_OBJECT(StepsSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_Snow);
     FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
+    FIND_OBJECT(Sqeak, USoundCue, /Game/Assets/Sounds/SFX/FoxScream);
+    FIND_OBJECT(Jumping, USoundCue, /Game/Assets/Sounds/SFX/FoxJump);
+    FIND_OBJECT(Landing, USoundCue, /Game/Assets/Sounds/SFX/FoxLand);
+    FIND_OBJECT(Squasched, USoundCue, /Game/Assets/Sounds/SFX/FoxDeath);
     FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
+    FIND_OBJECT(GameOver, USoundCue, /Game/Assets/Sounds/SFX/GameOver);
 
-    FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsSnowObj.Object, StepsGrassObj.Object, DazedObj.Object));
+    FoxSounds = MakeShareable(new DataHolder<USoundCue>
+                (
+                    StepsSnowObj.Object,
+                    StepsGrassObj.Object,
+                    SqeakObj.Object,
+                    JumpingObj.Object,
+                    LandingObj.Object,
+                    SquaschedObj.Object,
+                    DazedObj.Object,
+                    GameOverObj.Object
+                ));
 
-    FoxAnimations = MakeShareable(new DataHolder<UAnimBlueprint>());
+    FoxAnimations = MakeShareable(new DataHolder<UAnimInstance>());
 
 }
 
@@ -94,7 +111,7 @@ void AFoxCharacter::Tick(float DeltaTime)
 
         if(ThisWorld->LineTraceSingleByChannel(*HitResult, StartLocation, EndLocation, ECC_Visibility, *CollisionParams))
         {
-            GetCharacterMovement()->StopMovementImmediately();
+            GetCharacterMovement()->AddRadialImpulse(HitResult->ImpactPoint, 100.f, 500.f, ERadialImpulseFalloff::RIF_Constant, true);
         }
         #if !UE_BUILD_SHIPPING
         DrawDebugLine(ThisWorld, StartLocation, EndLocation, FColor::Emerald, false, 0.1f, 0, 2.5f);
@@ -131,7 +148,7 @@ void AFoxCharacter::MoveForward(float Value)
         {
             if(!bWaitToPlayWalkingSound)
             {
-                ThisWorld->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, (WalkSoundDelay / AtSpeed));
+                ThisWorld->GetTimerManager().SetTimer(WalkSoundTimer, this, &AFoxCharacter::PlaySound, (WalkSoundDelay / AtSpeed));
                 bWaitToPlayWalkingSound = true;
             }
         };
@@ -158,7 +175,7 @@ void AFoxCharacter::MoveRight(float Value)
     {
         if(!bWaitToPlayWalkingSound && FMath::IsNearlyZero(GetVelocity().X, 5.f))
         {
-            ThisWorld->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
+            ThisWorld->GetTimerManager().SetTimer(WalkSoundTimer, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
             bWaitToPlayWalkingSound = true;
         }
         if(GetVelocity().X < -10.f)
@@ -175,6 +192,11 @@ void AFoxCharacter::MoveRight(float Value)
 void AFoxCharacter::Jump()
 {
     Super::Jump();
+    if(bCanPlayJumpSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[3], GetActorLocation());
+        bCanPlayJumpSound = false;
+    }
 }
 
 void AFoxCharacter::Dive()
@@ -182,10 +204,16 @@ void AFoxCharacter::Dive()
     // TODO add diving animation
 }
 
+void AFoxCharacter::SetWalkSpeed(const float WalkSpeed)
+{
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
 void AFoxCharacter::PlayLandingAnimation(const FHitResult& Hit)
 {
     // TODO add landing animation
-    UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[0], GetActorLocation());
+    UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[4], GetActorLocation());
+    bCanPlayJumpSound = true;
 }
 
 void AFoxCharacter::PlaySound()
@@ -202,11 +230,18 @@ void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 {
     if(auto* BoulderPtr = Cast<ABoulder>(OtherActor))
     {
-        UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[2], GetActorLocation());
+        UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[5], GetActorLocation());
         //TODO reset world
         this->SetActorLocation(FVector(2000.f, 0.f, 20.f));
         BoulderPtr->SetActorLocation(FVector(1300.f, 0.f, 20.f));
         BoulderPtr->Reset();
+    }
+    else if(OtherActor->IsA<AActor>()) //replace aactor with common enemy
+    {
+        UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[2], GetActorLocation());
+        GetCharacterMovement()->StopMovementImmediately();
+        SetWalkSpeed(200.f);
+        ResetWalkSpeed(600.f, 1.f);
     }
 }
 
@@ -216,4 +251,11 @@ void AFoxCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
     {
 
     }
+}
+
+FTimerHandle AFoxCharacter::ResetWalkSpeed(const float Value, const float Delay)
+{
+    FTimerHandle TimerHandle;
+    ThisWorld->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &AFoxCharacter::SetWalkSpeed, Value), Delay, false);
+    return TimerHandle;
 }
