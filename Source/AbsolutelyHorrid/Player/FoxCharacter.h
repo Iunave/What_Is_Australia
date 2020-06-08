@@ -28,7 +28,6 @@ public:
 
     void Tick(float DeltaTime) override;
 
-
     void MoveForward(float Value);
 
     void MoveRight(float Value);
@@ -78,6 +77,8 @@ protected:
 
     float WalkSoundDelay;
 
+    UPROPERTY()
+    UWorld* ThisWorld;
 
     TSharedPtr<DataHolder<USoundCue>> FoxSounds;
 
