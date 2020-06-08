@@ -11,8 +11,10 @@ class UBoxComponent;
 class UAnimationAsset;
 class UAnimBlueprint;
 class USoundCue;
+class UParticleSystemComponent;
 struct FTimerHandle;
 class FTimerDynamicDelegate;
+
 
 UCLASS(Blueprintable)
 class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
@@ -22,7 +24,7 @@ class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 public:
 
 	AFoxCharacter(const FObjectInitializer& ObjectInitializer);
-	~AFoxCharacter() noexcept override;
+	inline ~AFoxCharacter() noexcept override;
 
     void Tick(float DeltaTime) override;
 
@@ -52,6 +54,10 @@ protected:
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+
+    UPROPERTY(VisibleAnywhere, Category=Components)
+    UParticleSystemComponent* ParticleSystem;
+
     UPROPERTY(VisibleAnywhere, Category=Components)
     UBoxComponent* BoxComponent;
 
@@ -61,7 +67,8 @@ protected:
     UPROPERTY(VisibleAnywhere, Category=Components)
     UCameraComponent* Camera;
 
-    float TurnSensitivity;
+    const FLinearColor SnowParticleColor;
+
     float JumpingForce;
 
     bool bCanDive;
