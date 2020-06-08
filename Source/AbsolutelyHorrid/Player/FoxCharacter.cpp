@@ -148,7 +148,7 @@ void AFoxCharacter::MoveForward(float Value)
         {
             if(!bWaitToPlayWalkingSound)
             {
-                ThisWorld->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, (WalkSoundDelay / AtSpeed));
+                ThisWorld->GetTimerManager().SetTimer(WalkSoundTimer, this, &AFoxCharacter::PlaySound, (WalkSoundDelay / AtSpeed));
                 bWaitToPlayWalkingSound = true;
             }
         };
@@ -175,7 +175,7 @@ void AFoxCharacter::MoveRight(float Value)
     {
         if(!bWaitToPlayWalkingSound && FMath::IsNearlyZero(GetVelocity().X, 5.f))
         {
-            ThisWorld->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
+            ThisWorld->GetTimerManager().SetTimer(WalkSoundTimer, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
             bWaitToPlayWalkingSound = true;
         }
         if(GetVelocity().X < -10.f)
@@ -202,6 +202,11 @@ void AFoxCharacter::Jump()
 void AFoxCharacter::Dive()
 {
     // TODO add diving animation
+}
+
+void AFoxCharacter::SetWalkSpeed(const float WalkSpeed)
+{
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AFoxCharacter::PlayLandingAnimation(const FHitResult& Hit)
@@ -235,6 +240,8 @@ void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
     {
         UGameplayStatics::PlaySoundAtLocation(ThisWorld, FoxSounds->DataArray[2], GetActorLocation());
         GetCharacterMovement()->StopMovementImmediately();
+        SetWalkSpeed(200.f);
+        ResetWalkSpeed(600.f, 1.f);
     }
 }
 
@@ -244,4 +251,11 @@ void AFoxCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
     {
 
     }
+}
+
+FTimerHandle AFoxCharacter::ResetWalkSpeed(const float Value, const float Delay)
+{
+    FTimerHandle TimerHandle;
+    ThisWorld->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &AFoxCharacter::SetWalkSpeed, Value), Delay, false);
+    return TimerHandle;
 }

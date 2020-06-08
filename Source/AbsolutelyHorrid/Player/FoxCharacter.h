@@ -35,6 +35,8 @@ public:
 
     FORCENOINLINE void Dive();
 
+    FORCEINLINE void SetWalkSpeed(const float NewSpeed = 600.f);
+
 protected:
 
 	void BeginPlay() override;
@@ -83,7 +85,9 @@ protected:
 
     TSharedPtr<DataHolder<UAnimInstance>> FoxAnimations;
 
-    FTimerHandle WalkingSoundTimerHandle;
+    FTimerHandle WalkSoundTimer;
+
+    FTimerHandle ResetWalkSpeed(const float Value, const float Delay);
 
     FTimerDynamicDelegate WalkingSoundDelegate;
     
