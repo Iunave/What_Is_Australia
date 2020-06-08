@@ -4,12 +4,17 @@
 #include "GameFramework/Actor.h"
 #include "Boulder.generated.h"
 
+template<typename DataType> struct DataHolder;
 class UStaticMeshComponent;
+class USoundCue;
+class USphereComponent;
 
 UCLASS()
 class ABSOLUTELYHORRID_API ABoulder : public AActor
 {
 	GENERATED_BODY()
+
+	friend class AFoxCharacter;
 	
 public:	
 
@@ -26,6 +31,11 @@ protected:
 	USceneComponent* Root;
 
     UPROPERTY(EditAnywhere, Category=Components)
+    USphereComponent* OverlapSphere;
+
+    UPROPERTY(EditAnywhere, Category=Components)
     UStaticMeshComponent* Mesh;
+
+    TSharedPtr<DataHolder<USoundCue>> RollingSounds;
 	
 };
