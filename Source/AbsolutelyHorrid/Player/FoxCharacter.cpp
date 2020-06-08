@@ -12,13 +12,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Components/BoxComponent.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Engine/World.h"
 
-#define TURN_SETTING
+#if !UE_BUILD_SHIPPING
+#include "Engine.h"
+#endif
 
 
 AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
-    : TurnSensitivity(1.f)
-    , JumpingForce(1.f)
+    : JumpingForce(1.f)
     , bCanDive(false)
     , bIsDiving(false)
     , bWaitToPlayWalkingSound(false)
@@ -30,6 +33,10 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("BoxComponent");
 	BoxComponent->SetupAttachment(RootComponent);
+
+    ParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("MovementParticles"));
+    ParticleSystem->SetupAttachment(RootComponent);
+    ParticleSystem->SetAutoActivate(false);
 
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	CameraSpringArm->SetupAttachment(RootComponent);
@@ -43,7 +50,7 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
     FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
     FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
 
-    FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsGrassObj.Object, StepsSnowObj.Object, DazedObj.Object));
+    FoxSounds = MakeShareable(new DataHolder<USoundCue>(StepsSnowObj.Object, StepsGrassObj.Object, DazedObj.Object));
 
     FoxAnimations = MakeShareable(new DataHolder<UAnimBlueprint>());
 
@@ -63,11 +70,42 @@ void AFoxCharacter::BeginPlay()
 
     BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AFoxCharacter::OnBeginOverlap);
     BoxComponent->OnComponentEndOverlap.AddDynamic(this, &AFoxCharacter::OnEndOverlap);
+
+    ParticleSystem->ActivateSystem();
 }
 
 void AFoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    const FVector StartLocation {GetActorLocation() + FVector(0.f, 0.f, 80.f)};
+
+    auto DoLineTrace = [&](const FVector&& TowardsVector, const float ForDistance) -> void
+    {
+        auto *HitResult = new FHitResult();
+        auto *CollisionParams = new FCollisionQueryParams();
+
+        const FVector EndLocation {(TowardsVector * ForDistance) + StartLocation};
+
+        CollisionParams->AddIgnoredActor(this);
+
+        if(GetWorld()->LineTraceSingleByChannel(*HitResult, StartLocation, EndLocation, ECC_Visibility, *CollisionParams))
+        {
+            GetCharacterMovement()->StopMovementImmediately();
+        }
+        #if !UE_BUILD_SHIPPING
+        DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Emerald, false, 0.1f, 0, 2.5f);
+        #endif
+        delete HitResult;
+        delete CollisionParams;
+    };
+
+    DoLineTrace(FVector(1.f, 0.f, 0.f), 80.f);
+    DoLineTrace(FVector(1.f, -0.5f, 0.f), 35.f);
+    DoLineTrace(FVector(-1.f, 0.75f, 0.f), 25.f);
+    DoLineTrace(FVector(-1.f, 0.f, 0.f), 80.f);
+    DoLineTrace(FVector(-1.f, -0.75f, 0.f), 25.f);
+    DoLineTrace(FVector(1.f, 0.5f, 0.f), 35.f);
 
 }
 
@@ -75,11 +113,11 @@ void AFoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
     check(PlayerInputComponent)
 
-    PlayerInputComponent->BindAxis("MoveForward", this, &AFoxCharacter::MoveForward);
-    PlayerInputComponent->BindAxis("MoveRight", this, &AFoxCharacter::MoveRight);
-
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AFoxCharacter::Jump);
     PlayerInputComponent->BindAction("Dive", IE_Pressed, this, &AFoxCharacter::Dive);
+
+    PlayerInputComponent->BindAxis("MoveForward", this, &AFoxCharacter::MoveForward);
+    PlayerInputComponent->BindAxis("MoveRight", this, &AFoxCharacter::MoveRight);
 }
 
 void AFoxCharacter::MoveForward(float Value)
@@ -108,7 +146,6 @@ void AFoxCharacter::MoveForward(float Value)
         AddMovementInput(GetActorForwardVector(), Value);
         return;
     }
-
     LOGS(AFoxCharacter::MoveForward called unexpectedly)
 }
 
@@ -121,20 +158,12 @@ void AFoxCharacter::MoveRight(float Value)
             GetWorld()->GetTimerManager().SetTimer(WalkingSoundTimerHandle, this, &AFoxCharacter::PlaySound, WalkSoundDelay);
             bWaitToPlayWalkingSound = true;
         }
-        // TODO add turning animation
-#ifdef ROTATE_SETTING
-
-        SetActorRotation(FRotator(GetActorRotation().Pitch, (GetActorRotation().Yaw + (Value * TurnSensitivity)), GetActorRotation().Roll));
-
-#elif defined(TURN_SETTING)
-
         if(GetVelocity().X < -10.f)
         {
             AddMovementInput(GetActorRightVector(), (Value * 0.5f));
             return;
         }
         AddMovementInput(GetActorRightVector(), Value);
-#endif
         return;
     }
     LOGS(AFoxCharacter::MoveRight called unexpectedly)
@@ -142,7 +171,7 @@ void AFoxCharacter::MoveRight(float Value)
 
 void AFoxCharacter::Jump()
 {
-    abort();
+    Super::Jump();
 }
 
 void AFoxCharacter::Dive()
