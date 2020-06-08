@@ -8,8 +8,7 @@ template<typename DataType> struct DataHolder;
 class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
-class UAnimationAsset;
-class UAnimBlueprint;
+class UAnimInstance;
 class USoundCue;
 class UParticleSystemComponent;
 struct FTimerHandle;
@@ -36,9 +35,6 @@ public:
 
     FORCENOINLINE void Dive();
 
-    UFUNCTION()
-    void PlayLandingAnimation(const FHitResult& Hit);
-
 protected:
 
 	void BeginPlay() override;
@@ -53,6 +49,8 @@ protected:
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+    UFUNCTION()
+    void PlayLandingAnimation(const FHitResult& Hit);
 
     UPROPERTY(VisibleAnywhere, Category=Components)
     UParticleSystemComponent* ParticleSystem;
@@ -72,6 +70,7 @@ protected:
 
     bool bCanDive;
     bool bIsDiving;
+    bool bCanPlayJumpSound;
 
     bool bWaitToPlayWalkingSound;
 
@@ -82,7 +81,7 @@ protected:
 
     TSharedPtr<DataHolder<USoundCue>> FoxSounds;
 
-    TSharedPtr<DataHolder<UAnimBlueprint>> FoxAnimations;
+    TSharedPtr<DataHolder<UAnimInstance>> FoxAnimations;
 
     FTimerHandle WalkingSoundTimerHandle;
 

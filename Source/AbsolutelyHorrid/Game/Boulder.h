@@ -33,7 +33,7 @@ protected:
     UPROPERTY(EditAnywhere, Category=Components)
     USphereComponent* OverlapSphere;
 
-    UPROPERTY(EditAnywhere, Category=Components)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Components)
     UStaticMeshComponent* Mesh;
 
     TSharedPtr<DataHolder<USoundCue>> RollingSounds;
