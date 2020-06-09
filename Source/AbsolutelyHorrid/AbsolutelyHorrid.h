@@ -18,7 +18,6 @@ DECLARE_LOG_CATEGORY_EXTERN(HorridLog, Log, All)
 template<typename DataType>
 struct DataHolder
 {
-
     template<typename... Args>
     explicit DataHolder(Args&&... args)
     {
@@ -31,7 +30,6 @@ struct DataHolder
     }
 
     TArray<DataType*> DataArray;
-
 private:
 
     template<size_t N>
@@ -41,7 +39,6 @@ private:
     void EmplaceAt_impl(std::tuple<Types...>&& ArgumentTuple, Typify<0>)
     {
     }
-
     template<typename... Types, size_t N>
     void EmplaceAt_impl(std::tuple<Types...>&& ArgumentTuple, Typify<N>)
     {
@@ -50,12 +47,10 @@ private:
 
         EmplaceAt_impl(Forward<std::tuple<Types...>>(ArgumentTuple), Typify<N - 1>{});
     }
-
     template<typename... Types>
     void EmplaceAt_impl(std::tuple<Types...>&& ArgumentTuple, Typify<1>)
     {
         static const auto CurrentArgument = std::get<sizeof...(Types) - 1>(ArgumentTuple);
         DataArray.EmplaceAt(sizeof...(Types) - 1, Forward<decltype(CurrentArgument)>(CurrentArgument));
     }
-
 };
