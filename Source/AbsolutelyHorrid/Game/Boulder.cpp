@@ -17,7 +17,7 @@ ABoulder::ABoulder()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("MeshComponent");
     Mesh->SetSimulatePhysics(true);
-    Mesh->SetMassOverrideInKg(NAME_None, 100.f);
+    Mesh->SetMassOverrideInKg(NAME_None, 500.f);
 	Mesh->SetupAttachment(RootComponent);
 
 	OverlapSphere = CreateDefaultSubobject<USphereComponent>("Sphere");
@@ -40,11 +40,9 @@ void ABoulder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(GetVelocity().X >= 600.f)
+	if(GetVelocity().X < 600.f)
     {
-	    Mesh->AddForce(FVector(1000.f, 0.f, 0.f));
-	    return;
+	    Mesh->AddForce(FVector(100000.f, 0.f, 0.f));
     }
-	PrimaryActorTick.bCanEverTick = false;
 }
 
