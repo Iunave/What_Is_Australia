@@ -17,9 +17,6 @@ public:
 
     virtual void Tick(float DeltaTime) override;
 
-    UFUNCTION(BlueprintImplementableEvent, Blueprintcallable, Category=Level)
-    void ReloadMap();
-
 protected:
 
     virtual void BeginPlay() override;

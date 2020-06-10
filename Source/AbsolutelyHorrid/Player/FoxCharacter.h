@@ -4,8 +4,7 @@
 #include "GameFramework/Character.h"
 #include "FoxCharacter.generated.h"
 
-template<typename DataType>
-struct DataHolder;
+template<typename DataType> struct DataHolder;
 class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
@@ -13,6 +12,7 @@ class UAnimInstance;
 class USoundCue;
 class UParticleSystemComponent;
 struct FTimerHandle;
+class FTimerDynamicDelegate;
 
 
 UCLASS(Blueprintable)
@@ -43,7 +43,7 @@ protected:
 
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	void PlayWalkingSound();
+	void PlaySound();
 
     UFUNCTION()
     void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -52,7 +52,7 @@ protected:
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
     UFUNCTION()
-    void OnLanding(const FHitResult& Hit);
+    void PlayLandingAnimation(const FHitResult& Hit);
 
     UPROPERTY(VisibleAnywhere, Category=Components)
     UParticleSystemComponent* ParticleSystem;
@@ -68,9 +68,12 @@ protected:
 
     const FLinearColor SnowParticleColor;
 
+    float JumpingForce;
+
     bool bCanDive;
     bool bIsDiving;
     bool bCanPlayJumpSound;
+
     bool bWaitToPlayWalkingSound;
 
     float WalkSoundDelay;
@@ -85,5 +88,7 @@ protected:
     FTimerHandle WalkSoundTimer;
 
     FTimerHandle ResetWalkSpeed(const float Value, const float Delay);
+
+    FTimerDynamicDelegate WalkingSoundDelegate;
     
 };
