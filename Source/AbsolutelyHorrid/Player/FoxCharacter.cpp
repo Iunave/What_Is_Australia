@@ -45,6 +45,12 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
+    /*
+    AnimationInstance->MontageInstances.Emplace(nullptr);
+	AnimationInstance->bUseMultiThreadedAnimationUpdate = true;
+	AnimationInstance->Montage_Play();
+    */
+
     FIND_OBJECT(StepsSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_Snow);
     FIND_OBJECT(StepsGrass, USoundCue,/Game/Assets/Sounds/SFX/Steps_Grass);
     FIND_OBJECT(Sqeak, USoundCue, /Game/Assets/Sounds/SFX/FoxScream);

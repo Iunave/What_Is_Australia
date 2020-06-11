@@ -6,6 +6,7 @@
 
 template<typename DataType>
 struct DataHolder;
+
 class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
@@ -13,6 +14,21 @@ class UAnimInstance;
 class USoundCue;
 class UParticleSystemComponent;
 struct FTimerHandle;
+
+
+UENUM(BlueprintType)
+enum class EFoxState : uint8
+{
+    Idle,
+
+    Running,
+
+    Jumping,
+
+    InAir,
+
+    Landing
+};
 
 
 UCLASS(Blueprintable)
@@ -35,7 +51,7 @@ public:
 
     FORCENOINLINE void Dive();
 
-    FORCEINLINE void SetWalkSpeed(const float NewSpeed = 600.f);
+    inline void SetWalkSpeed(const float NewSpeed = 600.f);
 
 protected:
 
@@ -77,6 +93,9 @@ protected:
 
     UPROPERTY()
     UWorld* ThisWorld;
+
+    UPROPERTY()
+    UAnimInstance* AnimationInstance;
 
     TSharedPtr<DataHolder<USoundCue>> FoxSounds;
 
