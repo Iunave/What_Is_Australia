@@ -12,7 +12,7 @@ public class AbsolutelyHorrid : ModuleRules
         CppStandard = CppStandardVersion.Cpp17;
         PrivatePCHHeaderFile = "AbsolutelyHorrid.h";
 */
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AIModule"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

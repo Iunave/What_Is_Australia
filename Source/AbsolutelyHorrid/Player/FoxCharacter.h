@@ -4,9 +4,7 @@
 #include "GameFramework/Character.h"
 #include "FoxCharacter.generated.h"
 
-template<typename DataType>
-struct DataHolder;
-
+class UFoxAnimInstance;
 class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
@@ -16,21 +14,6 @@ class UParticleSystemComponent;
 struct FTimerHandle;
 
 
-UENUM(BlueprintType)
-enum class EFoxState : uint8
-{
-    Idle,
-
-    Running,
-
-    Jumping,
-
-    InAir,
-
-    Landing
-};
-
-
 UCLASS(Blueprintable)
 class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 {
@@ -38,8 +21,8 @@ class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
 
 public:
 
-	AFoxCharacter(const FObjectInitializer& ObjectInitializer);
-	inline ~AFoxCharacter() noexcept override;
+	explicit AFoxCharacter(const FObjectInitializer& ObjectInitializer);
+	~AFoxCharacter() override;
 
     void Tick(float DeltaTime) override;
 
@@ -47,11 +30,15 @@ public:
 
     void MoveRight(float Value);
 
-    FORCENOINLINE void Jump() override;
-
-    FORCENOINLINE void Dive();
+    void Jump() override;
 
     inline void SetWalkSpeed(const float NewSpeed = 600.f);
+
+    UFUNCTION()
+    void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    UFUNCTION()
+    void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
 
@@ -60,12 +47,6 @@ protected:
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	void PlayWalkingSound();
-
-    UFUNCTION()
-    void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-    UFUNCTION()
-    void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
     UFUNCTION()
     void OnLanding(const FHitResult& Hit);
@@ -82,24 +63,18 @@ protected:
     UPROPERTY(VisibleAnywhere, Category=Components)
     UCameraComponent* Camera;
 
-    const FLinearColor SnowParticleColor;
+    FHitResult* HitResult;
+    FCollisionQueryParams* CollisionParams;
 
-    bool bCanDive;
-    bool bIsDiving;
-    bool bCanPlayJumpSound;
     bool bWaitToPlayWalkingSound;
 
     float WalkSoundDelay;
 
     UPROPERTY()
-    UWorld* ThisWorld;
+    UFoxAnimInstance* FoxAnimInstance;
 
     UPROPERTY()
-    UAnimInstance* AnimationInstance;
-
-    TSharedPtr<DataHolder<USoundCue>> FoxSounds;
-
-    TSharedPtr<DataHolder<UAnimInstance>> FoxAnimations;
+    TArray<USoundCue*> FoxSounds;
 
     FTimerHandle WalkSoundTimer;
 

@@ -2,45 +2,37 @@
 
 #include "SnowManAiController.h"
 #include "../Player/FoxCharacter.h"
+#include "SnowMan.h"
+#include "PatrolPoint.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine/World.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
 
 
 ASnowManAiController::ASnowManAiController()
-    : VisibilityRadius(400.f)
-    , bFoxInRange(false)
+    : bFoxInRange(false)
 {
     PrimaryActorTick.bCanEverTick = true;
-
-    AISight = CreateDefaultSubobject<UAISenseConfig_Sight>("AISight");
-    AISight->SightRadius = VisibilityRadius;
-    AISight->LoseSightRadius = (VisibilityRadius + 50.f);
-    AISight->PeripheralVisionAngleDegrees = 360.f;
-    AISight->SetMaxAge(5.f);
-    AISight->DetectionByAffiliation.bDetectEnemies = true;
-    AISight->DetectionByAffiliation.bDetectNeutrals = true;
-    AISight->DetectionByAffiliation.bDetectFriendlies = true;
-
-    AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>("AIPerception");
-
-    SetPerceptionComponent(*AIPerception);
 }
 
 void ASnowManAiController::BeginPlay()
 {
     Super::BeginPlay();
 
-    AIPerception->OnPerceptionUpdated.AddDynamic(this, &ASnowManAiController::OnFoxDetected);
-
-    Fox = Cast<AFoxCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+    verify(Fox = Cast<AFoxCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)))
 }
 
 void ASnowManAiController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    if(bFoxInRange)
+    {
+        MoveToLocation(Fox->GetActorLocation(), 10.f, true, false);
+    }
+}
+
+void ASnowManAiController::OnPossess(APawn* Pawn)
+{
+    Super::OnPossess(Pawn);
 }
 
 FRotator ASnowManAiController::GetControlRotation() const
@@ -49,15 +41,7 @@ FRotator ASnowManAiController::GetControlRotation() const
     {
         return {0.f, Fox->GetActorRotation().Yaw, 0.f};
     }
-    return FRotator{};
-}
-
-void ASnowManAiController::OnFoxDetected(const TArray<AActor*>& DetectedActors)
-{
-    if(DetectedActors.Contains(Fox))
-    {
-        bFoxInRange = true;
-    }
+    return FRotator(ForceInitToZero);
 }
 
 

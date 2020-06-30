@@ -1,46 +1,38 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
-#include "CoreMinimal.h"
 #include "AIController.h"
 #include "SnowManAiController.generated.h"
 
 class AFoxCharacter;
-class UAISenseConfig_Sight;
-class UAIPerceptionComponent;
+class APatrolPoint;
+class ASnowMan;
 
-/** Controller for snowman */
+/** Controller for snowman & scarecrow */
 UCLASS()
 class ABSOLUTELYHORRID_API ASnowManAiController : public AAIController
 {
 	GENERATED_BODY()
-	
+
+	friend class ASnowMan;
+	friend class AScareCrow;
+
 public:
 
     ASnowManAiController();
 
 	virtual FRotator GetControlRotation() const override;
 
-    UFUNCTION()
-	void OnFoxDetected(const TArray<AActor*>& DetectedActors);
-
     virtual void Tick(float DeltaTime) override;
+
+    virtual void OnPossess(APawn* Pawn) override;
 
 protected:
 
     virtual void BeginPlay() override;
 
-    float VisibilityRadius;
-
     UPROPERTY()
     AFoxCharacter* Fox;
-
-    UPROPERTY(EditAnywhere)
-    UAISenseConfig_Sight* AISight;
-
-    UPROPERTY(EditAnywhere)
-    UAIPerceptionComponent* AIPerception;
 
     bool bFoxInRange;
 

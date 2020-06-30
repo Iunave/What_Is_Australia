@@ -4,7 +4,6 @@
 #include "GameFramework/Actor.h"
 #include "Boulder.generated.h"
 
-template<typename DataType> struct DataHolder;
 class UStaticMeshComponent;
 class USoundCue;
 class USphereComponent;
@@ -36,6 +35,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Components)
     UStaticMeshComponent* Mesh;
 
-    TSharedPtr<DataHolder<USoundCue>> RollingSounds;
+    UPROPERTY()
+    TArray<USoundCue*> RollingSounds;
 	
 };

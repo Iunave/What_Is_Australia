@@ -9,8 +9,12 @@
 
 #define LOGS(Message) UE_LOG(HorridLog, Verbose, TEXT(#Message))
 #define LOGV(Message, ...) UE_LOG(HorridLog, Verbose, TEXT(#Message), __VA_ARGS__)
+#define SCREEN_LOG GEngine->AddOnScreenDebugMessage
+
+#define SFX_PATH /Game/Assets/Sounds/SFX/
 
 #define FIND_OBJECT(Name, Object, Path) static ConstructorHelpers::FObjectFinder<Object>Name##Obj(TEXT(#Path))
+
 
 DECLARE_LOG_CATEGORY_EXTERN(HorridLog, Log, All)
 
@@ -30,6 +34,7 @@ struct DataHolder
     }
 
     TArray<DataType*> DataArray;
+
 private:
 
     template<size_t N>

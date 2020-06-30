@@ -16,7 +16,6 @@ ABoulder::ABoulder()
 	SetRootComponent(Root);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("MeshComponent");
-    Mesh->SetSimulatePhysics(true);
     Mesh->SetMassOverrideInKg(NAME_None, 500.f);
 	Mesh->SetupAttachment(RootComponent);
 
@@ -26,14 +25,15 @@ ABoulder::ABoulder()
 	FIND_OBJECT(RollingSnow, USoundCue, /Game/Assets/Sounds/SFX/Rock_WithSnow);
     FIND_OBJECT(RollingGrass, USoundCue, /Game/Assets/Sounds/SFX/Rock_NoSnow);
 
-    RollingSounds = MakeShareable(new DataHolder<USoundCue>(RollingSnowObj.Object, RollingGrassObj.Object));
+    RollingSounds.Emplace(RollingSnowObj.Object);
+    RollingSounds.Emplace(RollingGrassObj.Object);
 }
 
 void ABoulder::BeginPlay()
 {
 	Super::BeginPlay();
 
-    UGameplayStatics::SpawnSoundAttached(RollingSounds->DataArray[0], RootComponent, NAME_None, FVector(ForceInit), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, 1.f, 1.f, 0.f, nullptr, nullptr, false);
+    UGameplayStatics::SpawnSoundAttached(RollingSounds[0], RootComponent, NAME_None, FVector(ForceInit), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, 1.f, 1.f, 0.f, nullptr, nullptr, false);
 }
 
 void ABoulder::Tick(float DeltaTime)
