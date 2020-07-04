@@ -4,7 +4,6 @@
 #include "Animation/AnimInstance.h"
 #include "FoxAnimInstance.generated.h"
 
-
 UENUM(BlueprintType)
 enum class EFoxState : uint8
 {
@@ -31,7 +30,7 @@ public:
 
     UFoxAnimInstance();
 
-    inline void SetFoxState(const EFoxState State)
+    finline void SetFoxState(const EFoxState State)
     {
         if(State != FoxState)
         {
@@ -46,8 +45,5 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     float FoxSpeed;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    bool bCanEnterTransition;
 
 };

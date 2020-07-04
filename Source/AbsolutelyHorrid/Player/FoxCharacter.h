@@ -15,7 +15,7 @@ struct FTimerHandle;
 
 
 UCLASS(Blueprintable)
-class ABSOLUTELYHORRID_API AFoxCharacter : public ACharacter
+class ABSOLUTELYHORRID_API AFoxCharacter final : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -27,18 +27,19 @@ public:
     void Tick(float DeltaTime) override;
 
     void MoveForward(float Value);
-
     void MoveRight(float Value);
 
     void Jump() override;
 
-    inline void SetWalkSpeed(const float NewSpeed = 600.f);
+    finline void SetWalkSpeed(const float NewSpeed = 600.f);
 
     UFUNCTION()
     void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UPROPERTY()
+    TArray<USoundCue*> FoxSounds;
 
 protected:
 
@@ -51,8 +52,7 @@ protected:
     UFUNCTION()
     void OnLanding(const FHitResult& Hit);
 
-    UPROPERTY(VisibleAnywhere, Category=Components)
-    UParticleSystemComponent* ParticleSystem;
+    float SetTimerAndSpeed(const float AtSpeed, const float Val, const bool bActivate = true);
 
     UPROPERTY(VisibleAnywhere, Category=Components)
     UBoxComponent* BoxComponent;
@@ -68,15 +68,16 @@ protected:
 
     bool bWaitToPlayWalkingSound;
 
+    bool bInvincible;
+
     float WalkSoundDelay;
 
     UPROPERTY()
     UFoxAnimInstance* FoxAnimInstance;
 
-    UPROPERTY()
-    TArray<USoundCue*> FoxSounds;
+    FTimerHandle WalkSoundTimerHandle;
 
-    FTimerHandle WalkSoundTimer;
+    FTimerHandle InvincibilityTimerHandle;
 
     FTimerHandle ResetWalkSpeed(const float Value, const float Delay);
     

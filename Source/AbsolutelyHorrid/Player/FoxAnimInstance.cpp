@@ -6,7 +6,6 @@
 UFoxAnimInstance::UFoxAnimInstance()
     : FoxState(EFoxState::Idle)
     , FoxSpeed(0.f)
-    , bCanEnterTransition(false)
 {
 }
 

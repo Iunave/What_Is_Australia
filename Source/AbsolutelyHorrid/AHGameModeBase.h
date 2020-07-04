@@ -4,7 +4,6 @@
 #include "GameFramework/GameModeBase.h"
 #include "AHGameModeBase.generated.h"
 
-
 /** Gamemode class */
 UCLASS(MinimalAPI)
 class AHGamemodeBase : public AGameModeBase
@@ -16,9 +15,6 @@ public:
     AHGamemodeBase();
 
     virtual void Tick(float DeltaTime) override;
-
-    UFUNCTION(BlueprintImplementableEvent, Blueprintcallable, Category=Level)
-    void ReloadMap();
 
 protected:
 

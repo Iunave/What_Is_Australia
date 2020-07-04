@@ -16,12 +16,11 @@ AHGamemodeBase::AHGamemodeBase()
     HUDClass = AHorridHUD::StaticClass();
 }
 
-void AHGamemodeBase::Tick(float DeltaTime)
+void AHGamemodeBase::BeginPlay()
 {
-
 }
 
-void AHGamemodeBase::BeginPlay()
+void AHGamemodeBase::Tick(float DeltaTime)
 {
 
 }

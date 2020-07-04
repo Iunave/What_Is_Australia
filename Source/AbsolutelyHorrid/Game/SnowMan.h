@@ -17,7 +17,8 @@ class ABSOLUTELYHORRID_API ASnowMan : public ACharacter
 
 public:
 
-    ASnowMan();
+    explicit ASnowMan(const FObjectInitializer& ObjectInitializer);
+	virtual ~ASnowMan() override = default;
 
     ASnowMan(FVTableHelper& Helper)
     : Super(Helper)
@@ -27,32 +28,37 @@ public:
 
     virtual void Tick(float DeltaTime) override;
 
-    UPROPERTY(EditAnywhere)
-    UBoxComponent* Box;
+    UFUNCTION()
+    virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 
     friend void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    UPROPERTY(EditAnywhere)
+    UBoxComponent* Box;
 
 	virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnywhere, Category = AI)
     UPawnSensingComponent* PawnSense;
 
-private:
-
     UFUNCTION()
-    void OnActorCaught(APawn* Pawn);
+    virtual void OnActorCaught(APawn* Pawn);
 
     const float VisibilityRadius;
 
     UPROPERTY(EditDefaultsOnly)
-    USoundCue* MoveSound;
+    USoundCue* Move;
 
     UPROPERTY(EditDefaultsOnly)
-    USoundCue* BreakSound;
+    USoundCue* Break;
 
     UPROPERTY(EditDefaultsOnly)
-    USoundCue* Laughing;
+    USoundCue* Laugh;
+
+public:
+
+    finline UBoxComponent* GetBoxComponent() const {return Box;}
 
 };

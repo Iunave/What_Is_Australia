@@ -12,9 +12,6 @@ UCLASS()
 class ABSOLUTELYHORRID_API ABoulder : public AActor
 {
 	GENERATED_BODY()
-
-	friend class AFoxCharacter;
-	
 public:	
 
 	ABoulder();
@@ -25,7 +22,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-
 	UPROPERTY(EditAnywhere, Category=Components)
 	USceneComponent* Root;
 
@@ -35,7 +31,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Components)
     UStaticMeshComponent* Mesh;
 
-    UPROPERTY()
-    TArray<USoundCue*> RollingSounds;
+    UPROPERTY(EditDefaultsOnly)
+    USoundCue* RollingSnow;
+
+    UPROPERTY(EditDefaultsOnly)
+    USoundCue* RollingGrass;
 	
 };

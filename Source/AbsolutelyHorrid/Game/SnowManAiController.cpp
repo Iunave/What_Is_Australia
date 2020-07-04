@@ -2,9 +2,8 @@
 
 #include "SnowManAiController.h"
 #include "../Player/FoxCharacter.h"
-#include "SnowMan.h"
-#include "PatrolPoint.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 
 
 ASnowManAiController::ASnowManAiController()
