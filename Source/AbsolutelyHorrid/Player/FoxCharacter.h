@@ -38,7 +38,6 @@ public:
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-    UPROPERTY()
     TArray<USoundCue*> FoxSounds;
 
 protected:
@@ -67,8 +66,9 @@ protected:
     FCollisionQueryParams* CollisionParams;
 
     bool bWaitToPlayWalkingSound;
-
     bool bInvincible;
+    bool bFirstSwapTriggered;
+    bool bSecondSwapTriggered;
 
     float WalkSoundDelay;
 

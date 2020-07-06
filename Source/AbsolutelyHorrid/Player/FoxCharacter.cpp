@@ -4,6 +4,9 @@
 #include "../Game/Boulder.h"
 #include "../Game/SnowMan.h"
 #include "../Game/ScareCrow.h"
+#include "../Game/Triggers/SoundTrigger1.h"
+#include "../Game/Triggers/SoundTrigger2.h"
+#include "../Game/Triggers/WinTrigger.h"
 #include "../AbsolutelyHorrid.h"
 #include "FoxAnimInstance.h"
 
@@ -35,6 +38,8 @@ UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundTwo, GetActorLocation());
 AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
     : bWaitToPlayWalkingSound(false)
     , bInvincible(false)
+    , bFirstSwapTriggered(false)
+    , bSecondSwapTriggered(false)
     , WalkSoundDelay(0.2f)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -56,24 +61,22 @@ AFoxCharacter::AFoxCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->MaxAcceleration = 600.f;
 
     FIND_OBJECT(StepsGrass, USoundCue, /Game/Assets/Sounds/SFX/Steps_Grass);
+    FIND_OBJECT(GrassSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_SnowGround);
     FIND_OBJECT(StepsSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_Snow);
     FIND_OBJECT(Sqeak, USoundCue, /Game/Assets/Sounds/SFX/FoxScream);
     FIND_OBJECT(Jumping, USoundCue, /Game/Assets/Sounds/SFX/FoxJump);
     FIND_OBJECT(Landing, USoundCue, /Game/Assets/Sounds/SFX/FoxLand);
     FIND_OBJECT(Squasched, USoundCue, /Game/Assets/Sounds/SFX/FoxDeath);
-    FIND_OBJECT(Dazed, USoundCue,/Game/Assets/Sounds/SFX/Fox_Dazed);
-    FIND_OBJECT(GameOver, USoundCue, /Game/Assets/Sounds/SFX/GameOver);
-    FIND_OBJECT(GrassSnow, USoundCue, /Game/Assets/Sounds/SFX/Steps_SnowGround);
+    FIND_OBJECT(WinGame, USoundCue, /Game/Assets/Sounds/SFX/UI_WinGame);
 
     FoxSounds.Add(StepsGrassObj.Object);
+    FoxSounds.Add(GrassSnowObj.Object);
     FoxSounds.Add(StepsSnowObj.Object);
     FoxSounds.Add(SqeakObj.Object);
     FoxSounds.Add(JumpingObj.Object);
     FoxSounds.Add(LandingObj.Object);
     FoxSounds.Add(SquaschedObj.Object);
-    FoxSounds.Add(DazedObj.Object);
-    FoxSounds.Add(GameOverObj.Object);
-    FoxSounds.Add(GrassSnowObj.Object);
+    FoxSounds.Add(WinGameObj.Object);
 
     HitResult = new FHitResult();
     CollisionParams = new FCollisionQueryParams();
@@ -83,6 +86,11 @@ AFoxCharacter::~AFoxCharacter()
 {
     delete HitResult;
     delete CollisionParams;
+
+    for(uint8 Index{0}; Index < FoxSounds.Num(); Index++)
+    {
+        FoxSounds.RemoveAt(Index);
+    }
 }
 
 void AFoxCharacter::BeginPlay()
@@ -96,7 +104,7 @@ void AFoxCharacter::BeginPlay()
 
     verify(FoxAnimInstance = Cast<UFoxAnimInstance>(GetMesh()->GetAnimInstance()));
 
-    FoxSounds.Swap(0, 1);
+    FoxSounds.Swap(0, 2);
 
     CollisionParams->AddIgnoredActor(this);
 }
@@ -119,7 +127,6 @@ void AFoxCharacter::Tick(float DeltaTime)
                 GetCharacterMovement()->AddImpulse((HitResult->ImpactNormal) * 5000.f);
             }
         };
-
         DoLineTrace(FVector(1.f, 0.f, 0.f), 80.f);
         DoLineTrace(FVector(1.f, -0.5f, 0.f), 35.f);
         DoLineTrace(FVector(-1.f, 0.75f, 0.f), 25.f);
@@ -188,7 +195,7 @@ void AFoxCharacter::Jump()
     {
         Super::Jump();
 
-        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[3], GetActorLocation());
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[4], GetActorLocation());
 
         FoxAnimInstance->SetFoxState(EFoxState::Jumping);
         FoxAnimInstance->ParallelUpdateAnimation();
@@ -204,7 +211,7 @@ void AFoxCharacter::OnLanding(const FHitResult& Hit)
 {
     FoxAnimInstance->SetFoxState(EFoxState::Landing);
 
-    UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[4], Hit.ImpactPoint);
+    UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[5], Hit.ImpactPoint);
 }
 
 void AFoxCharacter::PlayWalkingSound()
@@ -230,7 +237,7 @@ void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 {
     if(OtherActor->IsA<ABoulder>())
     {
-        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[5], GetActorLocation());
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FoxSounds[6], GetActorLocation());
         FTimerHandle DestroyWorldHandle;
         GetWorldTimerManager().SetTimer(DestroyWorldHandle, [&](){UGameplayStatics::OpenLevel(GetWorld(), FName("Level"));}, 0.65f, false);
     }
@@ -244,7 +251,7 @@ void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
                 SnowMan->Destroy();
             }
             else{
-                ENEMY_HIT_CAUGHT(FoxSounds[2], SnowMan->Laugh)
+                ENEMY_HIT_CAUGHT(FoxSounds[3], SnowMan->Laugh)
             }
         }
         else if(AScareCrow* ScareCrow = Cast<AScareCrow>(OtherActor))
@@ -255,17 +262,23 @@ void AFoxCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
                 ScareCrow->Destroy();
             }
             else{
-                ENEMY_HIT_CAUGHT(FoxSounds[2], ScareCrow->Laugh)
+                ENEMY_HIT_CAUGHT(FoxSounds[3], ScareCrow->Laugh)
             }
         }
     }
-    else if(OtherActor->ActorHasTag(FName("SnowGrassStepsTrigger")))
-    {
-        FoxSounds.Swap(0, 8);
-    }
-    else if(OtherActor->ActorHasTag(FName("GrassStepsTrigger")))
+    if(OtherActor->IsA<ASoundTrigger1>() && !bFirstSwapTriggered)
     {
         FoxSounds.Swap(0, 1);
+        bFirstSwapTriggered = true;
+    }
+    else if(OtherActor->IsA<ASoundTrigger2>() && !bSecondSwapTriggered)
+    {
+        FoxSounds.Swap(0, 2);
+        bSecondSwapTriggered = true;
+    }
+    else if(OtherActor->IsA<AWinTrigger>())
+    {
+        UGameplayStatics::PlaySound2D(GetWorld(), FoxSounds[7]);
     }
 }
 

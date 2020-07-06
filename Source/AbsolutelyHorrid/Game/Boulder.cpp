@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
+#include "Triggers/SoundTrigger2.h"
 
 ABoulder::ABoulder()
 {
@@ -27,6 +28,8 @@ void ABoulder::BeginPlay()
 {
 	Super::BeginPlay();
 
+	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &ABoulder::OnBeginOverlap);
+
     UGameplayStatics::SpawnSoundAttached(RollingSnow, Mesh, NAME_None, FVector(ForceInit), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, 1.f, 1.f, 0.f, nullptr, nullptr, false);
 }
 
@@ -39,6 +42,15 @@ void ABoulder::Tick(float DeltaTime)
 	if(Mesh->GetComponentVelocity().X < 575.f && Mesh->GetComponentVelocity().Z < 50.f)
     {
 	    Mesh->AddTorqueInRadians(Force);
+    }
+}
+
+void ABoulder::OnBeginOverlap(UPrimitiveComponent *OverlappedComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+    if(OtherActor->IsA<ASoundTrigger2>())
+    {
+        RollingSnow = nullptr;
+        UGameplayStatics::SpawnSoundAttached(RollingGrass, Mesh, NAME_None, FVector(ForceInit), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, 1.f, 1.f, 0.f, nullptr, nullptr, false);
     }
 }
 
