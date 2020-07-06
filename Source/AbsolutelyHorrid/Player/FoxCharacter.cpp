@@ -86,11 +86,6 @@ AFoxCharacter::~AFoxCharacter()
 {
     delete HitResult;
     delete CollisionParams;
-
-    for(uint8 Index{0}; Index < FoxSounds.Num(); Index++)
-    {
-        FoxSounds.RemoveAt(Index);
-    }
 }
 
 void AFoxCharacter::BeginPlay()

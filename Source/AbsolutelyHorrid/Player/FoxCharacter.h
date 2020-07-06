@@ -38,6 +38,7 @@ public:
     UFUNCTION()
     void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+    UPROPERTY()
     TArray<USoundCue*> FoxSounds;
 
 protected:
